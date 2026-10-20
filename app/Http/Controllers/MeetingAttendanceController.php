@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Meeting;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -106,6 +108,35 @@ class MeetingAttendanceController extends Controller
         Gate::authorize('view', $meeting);
 
         return view('meetings.report', compact('meeting'));
+    }
+
+    /**
+     * Download formal Attendance PDF report.
+     */
+    public function downloadPdf(string $code): Response
+    {
+        $meeting = Meeting::with([
+            'host',
+            'attendanceSummaries.user',
+            'attendanceSessions.user',
+            'note',
+            'actionItems.assignee',
+            'files.uploader',
+        ])->where('room_code', $code)->firstOrFail();
+
+        Gate::authorize('exportAttendance', $meeting);
+
+        $pdf = Pdf::loadView('pdf.attendance_report', compact('meeting'))
+            ->setPaper('a4', 'portrait')
+            ->setOption([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'sans-serif',
+            ]);
+
+        $filename = "Laporan_Presensi_MeetHub_{$meeting->room_code}_" . now()->format('Ymd_His') . ".pdf";
+
+        return $pdf->download($filename);
     }
 }
 

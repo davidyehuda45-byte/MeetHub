@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\Meeting;
+use App\Services\CalendarService;
 use App\Services\MeetingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -220,6 +222,23 @@ class MeetingController extends Controller
 
         return redirect()->route('meetings.show', $meeting->room_code)
             ->with('success', 'Rapat telah diakhiri.');
+    }
+
+    /**
+     * Download iCalendar RFC 5545 (.ics) file for a meeting.
+     */
+    public function calendarIcs(string $code, CalendarService $calendarService): Response
+    {
+        $meeting = Meeting::where('room_code', $code)->firstOrFail();
+
+        $icsContent = $calendarService->generateIcs($meeting);
+        $fileName = 'meethub-' . $meeting->room_code . '.ics';
+
+        return response($icsContent, 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ]);
     }
 }
 
