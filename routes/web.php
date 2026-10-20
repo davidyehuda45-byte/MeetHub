@@ -8,6 +8,7 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingFileController;
 use App\Http\Controllers\MeetingJoinController;
 use App\Http\Controllers\MeetingNoteController;
+use App\Http\Controllers\MeetingRecordingController;
 use Illuminate\Support\Facades\Route;
 
 // Guest / Public Authentication
@@ -45,6 +46,7 @@ Route::middleware('auth')->group(function () {
 
     // Attendance Reports & Exports
     Route::get('/meetings/{code}/attendance/export', [MeetingAttendanceController::class, 'exportCsv'])->name('meetings.attendance.export');
+    Route::get('/meetings/{code}/attendance/pdf', [MeetingAttendanceController::class, 'downloadPdf'])->name('meetings.attendance.pdf');
     Route::get('/meetings/{code}/report', [MeetingAttendanceController::class, 'summaryReport'])->name('meetings.report');
 
     // Admin Panel
@@ -71,8 +73,15 @@ Route::post('/meetings/{code}/files', [MeetingFileController::class, 'store'])->
 Route::get('/files/{id}', [MeetingFileController::class, 'download'])->name('files.download');
 Route::delete('/files/{id}', [MeetingFileController::class, 'destroy'])->name('files.destroy');
 
+// Meeting Recordings & Streaming
+Route::get('/meetings/{code}/recordings', [MeetingRecordingController::class, 'index'])->name('meetings.recordings.index');
+Route::get('/recordings/{id}/download', [MeetingRecordingController::class, 'download'])->name('recordings.download');
+Route::get('/recordings/{id}/stream', [MeetingRecordingController::class, 'stream'])->name('recordings.stream');
+Route::delete('/recordings/{id}', [MeetingRecordingController::class, 'destroy'])->name('recordings.destroy');
+
 // Pre-Join Lobby & Conference Room
 Route::get('/m/{code}', [MeetingJoinController::class, 'lobby'])->name('meetings.lobby');
 Route::match(['GET', 'POST'], '/m/{code}/room', [MeetingJoinController::class, 'room'])->name('meetings.room');
+Route::get('/meetings/{code}/calendar.ics', [MeetingController::class, 'calendarIcs'])->name('meetings.calendar.ics');
 Route::post('/attendance/heartbeat', [MeetingJoinController::class, 'heartbeat'])->name('meetings.heartbeat');
 Route::post('/attendance/leave', [MeetingJoinController::class, 'leave'])->name('meetings.leave');

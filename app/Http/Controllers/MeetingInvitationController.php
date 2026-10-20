@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\MeetingInvitationMail;
 use App\Models\AuditLog;
 use App\Models\Meeting;
 use App\Models\MeetingInvitation;
@@ -10,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class MeetingInvitationController extends Controller
@@ -55,6 +57,9 @@ class MeetingInvitationController extends Controller
                 ],
             ]);
         }
+
+        $inviterName = Auth::user()?->name ?? 'Host MeetHub';
+        Mail::to($email)->queue(new MeetingInvitationMail($meeting, $invitation, $inviterName));
 
         AuditLog::log('invitation_created', MeetingInvitation::class, $invitation->id, [
             'email' => $email,

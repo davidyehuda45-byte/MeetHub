@@ -40,6 +40,11 @@ MeetHub adalah platform rapat online (video conference) full-stack mandiri yang 
 - **Presensi Otomatis**: Heartbeat 20 detik, auto-leave beacon, ekspor CSV UTF-8 BOM, dan summary report PDF-ready.
 - **Cron Scheduler**: `meethub:send-reminders` (pengingat 15 menit) & `meethub:close-abandoned-sessions` (clean up timeout > 2 menit).
 - **Server Health Check**: `GET /api/v1/health` (PDO database check, storage check, domain Jitsi, status 200).
+- **Integrasi Kalender Standar (RFC 5545 iCalendar)**: `CalendarService` untuk payload `.ics` (VEVENT, alarm pengingat 15 menit, UID terisolasi) dan generator Google Calendar 1-klik via endpoint `GET /meetings/{code}/calendar.ics`.
+- **Generator Dokumen PDF Presensi Resmi**: Menggunakan `barryvdh/laravel-dompdf` pada `MeetingAttendanceController::downloadPdf` dengan format kop surat resmi, rekap durasi akumulatif, tabel kehadiran dengan status, notulensi, dan kolom tanda tangan via endpoint `GET /meetings/{code}/attendance/pdf`.
+- **Email Undangan Rapat Otomatis (Queue & Mailable)**: `MeetingInvitationMail` dengan antrean background (`ShouldQueue`), template email HTML responsif Nordic Teal, tombol akses langsung, dan lampiran kalender `.ics` otomatis.
+- **Webhook Receiver Event Jitsi / Prosody**: `JitsiWebhookController` pada endpoint `POST /api/v1/webhooks/jitsi` dengan verifikasi dual-signature (HMAC-SHA256 & Bearer Token) untuk otomatisasi mutasi status rapat (`room_created`, `room_destroyed`) serta pelacakan presensi SFU server-side (`participant_joined`, `participant_left`).
+- **Manajemen Rekaman Rapat (Video Streaming & Storage Service)**: Tabel `meeting_recordings`, model `MeetingRecording`, dan `MeetingRecordingController` untuk penyajian video terproteksi dengan header HTTP `Range` (seekable byte streaming), download terverifikasi, sinkronisasi webhook otomatis dari perekam Jibri, dan hak akses eksklusif peserta.
 
 ### 3. Aplikasi Mobile (Flutter)
 Terletak pada direktori `mobile/`:
@@ -53,6 +58,6 @@ Terletak pada direktori `docker/jitsi/`:
 ---
 
 ## Verifikasi & Kualitas Kode
-- **PHPUnit / Pest Test Suite**: 18 pengujian unit & fitur (77 assertions) — **100% PASS**.
+- **PHPUnit / Pest Test Suite**: 35 pengujian unit & fitur (155 assertions) — **100% PASS**.
 - **Frontend Assets**: Vite v7 + Tailwind CSS v4 compiled successfully (`public/build`).
 - **Database**: 12 tabel MySQL dengan index, relasi foreign keys, dan tabel pengaturan sistem.

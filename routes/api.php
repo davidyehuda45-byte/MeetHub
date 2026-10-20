@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\ActionItemController;
+use App\Http\Controllers\Api\JitsiWebhookController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingFileController;
 use App\Http\Controllers\MeetingInvitationController;
 use App\Http\Controllers\MeetingJoinController;
 use App\Http\Controllers\MeetingNoteController;
+use App\Http\Controllers\MeetingRecordingController;
 use App\Models\Meeting;
 use App\Models\Notification;
 use Illuminate\Http\Request;
@@ -52,6 +54,9 @@ Route::prefix('v1')->group(function () {
     Route::post('/meetings/{code}/join', [MeetingJoinController::class, 'apiJoin']);
     Route::post('/meetings/attendance/heartbeat', [MeetingJoinController::class, 'heartbeat']);
     Route::post('/meetings/attendance/leave', [MeetingJoinController::class, 'leave']);
+
+    // Jitsi / Prosody Webhook Receiver
+    Route::post('/webhooks/jitsi', [JitsiWebhookController::class, 'handle']);
 
     // Authenticated Mobile API
     Route::middleware('auth:sanctum')->group(function () {
@@ -129,6 +134,7 @@ Route::prefix('v1')->group(function () {
         Route::put('/meetings/{code}/notes', [MeetingNoteController::class, 'update']);
         Route::get('/meetings/{code}/files', [MeetingFileController::class, 'index']);
         Route::post('/meetings/{code}/files', [MeetingFileController::class, 'store']);
+        Route::get('/meetings/{code}/recordings', [MeetingRecordingController::class, 'index']);
 
         // Notifications
         Route::get('/notifications', function (Request $request) {
